@@ -1056,8 +1056,14 @@ def display_messages(username, messages, page, total_pages):
 # Chat mode
 def chat_mode(username):
     """Enter chat mode with a user"""
-    # Verify user exists before starting chat
-    if not user_exists(username):
+    # Get current user
+    current_user = get_current_user()
+    
+    # Special handling for self-messaging
+    if username == current_user:
+        console.print(f"[bold yellow]You are now chatting with yourself ({username})[/bold yellow]")
+    # Verify other users exist before starting chat
+    elif not user_exists(username):
         console.print(f"[bold red]User {username} does not exist.[/bold red]")
         return
     
@@ -1646,10 +1652,19 @@ def save_config(config):
 
 def user_exists(username):
     """Check if a user exists"""
+    # If checking for the current user, they obviously exist
+    current_user = get_current_user()
+    if username == current_user:
+        return True
+        
     if USE_SERVER:
         token = get_server_token()
         if token:
             result = server_request(f"user/{username}", token=token)
+            # Debug output to help diagnose user existence issues
+            if isinstance(result, dict):
+                console.print(f"[dim]Server response for user {username}: {result}[/dim]")
+                
             if isinstance(result, dict) and result.get('exists') is True:
                 return True
             # If we got a response but the user doesn't exist, return False immediately
