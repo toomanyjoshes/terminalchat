@@ -140,19 +140,49 @@ terminalchat help
 
 ## Deployment
 
+### Deploying to Render
+
+1. Create a free account on [Render](https://render.com)
+2. Click on "New" and select "Web Service"
+3. Connect your GitHub account and select the `terminalchat` repository
+4. Configure your web service with these settings:
+   - Name: `terminalchat-server`
+   - Environment: `Python`
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `gunicorn server:app`
+   - Instance Type: `Free`
+5. Click "Create Web Service"
+
+Render will automatically deploy your application and provide you with a URL like `https://terminalchat-server.onrender.com`.
+
+### Using the Online Server
+
+Once you have deployed the server to Render, you can use the `tc-online.sh` script to connect to it:
+
+```bash
+# First, update the RENDER_URL in the script with your actual Render URL
+nano tc-online.sh
+
+# Then run the script
+./tc-online.sh login
+```
+
+Alternatively, you can set the environment variable directly:
+
+```bash
+export TERMINALCHAT_SERVER_URL="https://terminalchat-server.onrender.com"
+python terminalchat.py login
+```
+
+Or run the client with the server URL in a single command:
+
+```bash
+TERMINALCHAT_SERVER_URL="https://terminalchat-server.onrender.com" python terminalchat.py login
+```
+
 ### Deploy the server
 
 The TerminalChat server can be deployed to various cloud platforms:
-
-#### Render
-
-1. Sign up for a free account at [render.com](https://render.com)
-2. Create a new Web Service
-3. Connect your GitHub repository
-4. Use the following settings:
-   - Build Command: `pip install -r requirements.txt`
-   - Start Command: `gunicorn server:app`
-   - Environment Variables: None required
 
 #### Heroku
 
