@@ -1,0 +1,36 @@
+#!/bin/bash
+# Ultra-simple installer for terminalchat
+
+# Install Rich library if needed
+python3 -m pip install --user rich >/dev/null
+
+# Make the script executable
+chmod +x "$(pwd)/terminalchat.py"
+
+# Create a symlink in /usr/local/bin if possible, otherwise in ~/bin
+if [ -w /usr/local/bin ]; then
+    ln -sf "$(pwd)/terminalchat.py" /usr/local/bin/terminalchat
+    echo "TerminalChat installed. Run 'terminalchat' to start."
+else
+    # Use home directory bin
+    mkdir -p "$HOME/bin"
+    ln -sf "$(pwd)/terminalchat.py" "$HOME/bin/terminalchat"
+    
+    # Add to PATH for current session
+    export PATH="$HOME/bin:$PATH"
+    
+    # Add to PATH permanently if needed
+    if ! grep -q 'export PATH="$HOME/bin:$PATH"' "$HOME/.bashrc" 2>/dev/null; then
+        echo 'export PATH="$HOME/bin:$PATH"' >> "$HOME/.bashrc"
+    fi
+    
+    if [ -f "$HOME/.zshrc" ] && ! grep -q 'export PATH="$HOME/bin:$PATH"' "$HOME/.zshrc" 2>/dev/null; then
+        echo 'export PATH="$HOME/bin:$PATH"' >> "$HOME/.zshrc"
+    fi
+    
+    echo "TerminalChat installed. Run 'terminalchat' to start."
+    echo "If command not found, run: export PATH=\"\$HOME/bin:\$PATH\""
+fi
+
+# Run terminalchat to show help
+"$(pwd)/terminalchat.py"
