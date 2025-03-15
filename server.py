@@ -2,13 +2,23 @@
 
 import os
 import json
-import uuid
-import hashlib
 import time
+import uuid
+import shutil
+import warnings
+
+# Suppress all warnings
+warnings.filterwarnings("ignore")
+
+import urllib3
 from datetime import datetime
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
+import hashlib
+
+# Suppress urllib3 warnings
+urllib3.disable_warnings()
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes

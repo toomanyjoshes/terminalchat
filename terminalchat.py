@@ -1,22 +1,35 @@
 #!/usr/bin/env python3
+
 import os
 import sys
 import json
-import uuid
 import time
-import shutil
-import hashlib
-import requests
 import argparse
+import getpass
 import platform
+import subprocess
+import shutil
+import tempfile
+import warnings
+
+# Suppress all warnings
+warnings.filterwarnings("ignore")
+
+import requests
 from rich.console import Console
-from rich.panel import Panel
 from rich.table import Table
-from rich.text import Text
+from rich.panel import Panel
+from rich.prompt import Prompt, Confirm
 from rich.progress import Progress
+from rich.markdown import Markdown
 from rich import box
 from datetime import datetime
 from getpass import getpass  # Use getpass instead of getpass.getpass
+import urllib3
+import re
+
+# Suppress urllib3 warnings
+urllib3.disable_warnings()
 
 # Try to import required packages, install if missing
 try:
@@ -790,7 +803,8 @@ def handle_signup(args):
 def handle_login(args):
     """Handle the login command"""
     if is_logged_in():
-        console.print(f"[bold yellow]You are already logged in as {get_current_user()}.[/bold yellow]")
+        clear_terminal()
+        console.print(f"[bold yellow]You are already logged in as {get_current_user()}[/bold yellow]")
         return
     
     # Get the username
@@ -812,14 +826,17 @@ def handle_login(args):
         config['token'] = result.get('token')
         save_config(config)
         
+        clear_terminal()
         console.print(f"[bold green]Logged in as {username}![/bold green]")
     else:
         error_message = result.get('error', 'Invalid username or password') if result else 'Could not connect to server'
+        clear_terminal()
         console.print(f"[bold red]Failed to log in: {error_message}[/bold red]")
 
 def handle_logout(args):
     """Handle the logout command"""
     if not is_logged_in():
+        clear_terminal()
         console.print("[bold yellow]You are not logged in.[/bold yellow]")
         return
     
@@ -835,6 +852,7 @@ def handle_logout(args):
     config['token'] = None
     save_config(config)
     
+    clear_terminal()
     console.print("[bold green]Logged out successfully![/bold green]")
 
 def handle_message(args):
@@ -1075,6 +1093,8 @@ def handle_about(args):
 
 def handle_status(args):
     """Display the current status of TerminalChat"""
+    clear_terminal()
+    
     current_user = get_current_user()
     
     status_text = f"""
@@ -1095,6 +1115,7 @@ def handle_chat_list(args):
     current_user = get_current_user()
     
     if not current_user:
+        clear_terminal()
         console.print("[bold red]You are not logged in! Please login first.[/bold red]")
         return
     
@@ -1155,6 +1176,7 @@ def handle_chat_list(args):
                 })
     
     if not chats:
+        clear_terminal()
         console.print("[bold yellow]You have no active chats.[/bold yellow]")
         return
     
@@ -1208,6 +1230,7 @@ def handle_chat_delete(args):
     delete_chat(current_user, username)
 
 def handle_block(args):
+    clear_terminal()
     current_user = get_current_user()
     
     if not current_user:
@@ -1224,6 +1247,7 @@ def handle_block(args):
     block_user(username)
 
 def handle_unblock(args):
+    clear_terminal()
     current_user = get_current_user()
     
     if not current_user:
@@ -1240,6 +1264,7 @@ def handle_unblock(args):
     unblock_user(username)
 
 def handle_list_blocked(args):
+    clear_terminal()
     current_user = get_current_user()
     
     if not current_user:
@@ -1374,6 +1399,7 @@ def handle_delete_account(args):
         return
     
     # Confirm deletion
+    clear_terminal()
     console.print("[bold yellow]WARNING: This will permanently delete your account and all your messages.[/bold yellow]")
     console.print("[bold yellow]This action cannot be undone.[/bold yellow]")
     confirm = input("Type your username to confirm deletion: ")
@@ -1394,70 +1420,12 @@ def handle_delete_account(args):
         config['token'] = None
         save_config(config)
         
+        clear_terminal()
         console.print("[bold green]Your account has been deleted successfully.[/bold green]")
     else:
         error_message = result.get('error', 'Unknown error') if result else 'Could not connect to server'
+        clear_terminal()
         console.print(f"[bold red]Failed to delete account: {error_message}[/bold red]")
-
-def show_help():
-    help_text = """
-    [bold cyan]TerminalChat - A simple terminal-based chat application[/bold cyan]
-    
-    [bold]Commands:[/bold]
-    
-    [bold cyan]terminalchat signup[/bold cyan] or [bold cyan]tc signup[/bold cyan]
-        Create a new account
-        Options:
-            --username USERNAME
-            --password PASSWORD
-    
-    [bold cyan]terminalchat login[/bold cyan] or [bold cyan]tc login[/bold cyan]
-        Login to your account
-        Options:
-            --username USERNAME
-            --password PASSWORD
-    
-    [bold cyan]terminalchat logout[/bold cyan] or [bold cyan]tc logout[/bold cyan]
-        Logout from your account
-    
-    [bold cyan]terminalchat message USERNAME[/bold cyan] or [bold cyan]tc message USERNAME[/bold cyan]
-        Send a message to a user
-    
-    [bold cyan]terminalchat chat USERNAME[/bold cyan] or [bold cyan]tc chat USERNAME[/bold cyan]
-        Chat with a user (alias for message)
-    
-    [bold cyan]terminalchat chat_list[/bold cyan] or [bold cyan]tc chat_list[/bold cyan]
-        List all your chats
-    
-    [bold cyan]terminalchat block USERNAME[/bold cyan] or [bold cyan]tc block USERNAME[/bold cyan]
-        Block a user
-    
-    [bold cyan]terminalchat unblock USERNAME[/bold cyan] or [bold cyan]tc unblock USERNAME[/bold cyan]
-        Unblock a user
-    
-    [bold cyan]terminalchat blocked[/bold cyan] or [bold cyan]tc blocked[/bold cyan]
-        List all blocked users
-    
-    [bold cyan]terminalchat send_file USERNAME FILE_PATH[/bold cyan] or [bold cyan]tc send_file USERNAME FILE_PATH[/bold cyan]
-        Send a file to a user
-    
-    [bold cyan]terminalchat status[/bold cyan] or [bold cyan]tc status[/bold cyan]
-        Show your current status
-    
-    [bold cyan]terminalchat update[/bold cyan] or [bold cyan]tc update[/bold cyan]
-        Check for updates
-    
-    [bold cyan]terminalchat uninstall[/bold cyan] or [bold cyan]tc uninstall[/bold cyan]
-        Uninstall TerminalChat from your system
-    
-    [bold cyan]terminalchat delete_account[/bold cyan] or [bold cyan]tc delete_account[/bold cyan]
-        Delete your account
-    
-    [bold cyan]terminalchat help[/bold cyan] or [bold cyan]tc help[/bold cyan]
-        Show this help message
-    
-    """
-    console.print(help_text)
 
 def show_notification(message):
     """Show a system notification"""
@@ -1615,6 +1583,76 @@ def user_exists(username):
     
     return False
 
+def clear_terminal():
+    """Clear the terminal screen"""
+    os_name = platform.system().lower()
+    if os_name == 'windows':
+        os.system('cls')
+    else:
+        os.system('clear')
+
+def show_help():
+    help_text = """
+    [bold cyan]TerminalChat - A simple terminal-based chat application[/bold cyan]
+    
+    [bold cyan]Commands:[/bold cyan]
+    
+    [bold cyan]terminalchat signup[/bold cyan] or [bold cyan]tc signup[/bold cyan]
+        Create a new account
+        Options:
+            --username USERNAME
+            --password PASSWORD
+    
+    [bold cyan]terminalchat login[/bold cyan] or [bold cyan]tc login[/bold cyan]
+        Login to your account
+        Options:
+            --username USERNAME
+            --password PASSWORD
+    
+    [bold cyan]terminalchat logout[/bold cyan] or [bold cyan]tc logout[/bold cyan]
+        Logout from your account
+    
+    [bold cyan]terminalchat message USERNAME[/bold cyan] or [bold cyan]tc message USERNAME[/bold cyan]
+        Send a message to a user
+    
+    [bold cyan]terminalchat chat USERNAME[/bold cyan] or [bold cyan]tc chat USERNAME[/bold cyan]
+        Chat with a user (alias for message)
+    
+    [bold cyan]terminalchat list[/bold cyan] or [bold cyan]tc list[/bold cyan]
+        List all your chats
+    
+    [bold cyan]terminalchat block USERNAME[/bold cyan] or [bold cyan]tc block USERNAME[/bold cyan]
+        Block a user
+    
+    [bold cyan]terminalchat unblock USERNAME[/bold cyan] or [bold cyan]tc unblock USERNAME[/bold cyan]
+        Unblock a user
+    
+    [bold cyan]terminalchat blocked[/bold cyan] or [bold cyan]tc blocked[/bold cyan]
+        List all blocked users
+    
+    [bold cyan]terminalchat send USERNAME FILE_PATH[/bold cyan] or [bold cyan]tc send USERNAME FILE_PATH[/bold cyan]
+        Send a file to a user
+    
+    [bold cyan]terminalchat status[/bold cyan] or [bold cyan]tc status[/bold cyan]
+        Show your current status
+    
+    [bold cyan]terminalchat update[/bold cyan] or [bold cyan]tc update[/bold cyan]
+        Check for updates
+    
+    [bold cyan]terminalchat uninstall[/bold cyan] or [bold cyan]tc uninstall[/bold cyan]
+        Uninstall TerminalChat from your system
+    
+    [bold cyan]terminalchat delete[/bold cyan] or [bold cyan]tc delete[/bold cyan]
+        Delete your account
+    
+    [bold cyan]terminalchat help[/bold cyan] or [bold cyan]tc help[/bold cyan]
+        Show this help message
+    
+    """
+    # Clear the terminal before showing help
+    clear_terminal()
+    console.print(help_text)
+
 def main():
     # Setup application directories
     setup_app_directories()
@@ -1622,17 +1660,29 @@ def main():
     # Check for new messages
     check_for_new_messages()
     
-    # Parse command line arguments
-    parser = argparse.ArgumentParser(description='TerminalChat - A simple terminal-based chat application')
+    # Create the argument parser with custom error handling
+    class CustomArgumentParser(argparse.ArgumentParser):
+        def error(self, message):
+            # Show custom error message
+            show_invalid_command()
+            # Exit without showing the default error message
+            sys.exit(0)
+    
+    # Use our custom parser
+    parser = CustomArgumentParser(prog='tc', description='TerminalChat - A simple terminal-based chat application')
+    parser.add_argument('--version', action='version', version=f'TerminalChat {VERSION}')
+    
     subparsers = parser.add_subparsers(dest='command', help='Command to run')
     
     # Signup command
     signup_parser = subparsers.add_parser('signup', help='Create a new account')
     signup_parser.add_argument('username', nargs='?', help='Username for the new account')
+    signup_parser.add_argument('--password', help='Password for the new account')
     
     # Login command
     login_parser = subparsers.add_parser('login', help='Log in to your account')
     login_parser.add_argument('username', nargs='?', help='Username to log in with')
+    login_parser.add_argument('--password', help='Password to log in with')
     
     # Logout command
     logout_parser = subparsers.add_parser('logout', help='Log out from your account')
@@ -1649,29 +1699,32 @@ def main():
     chat_parser.add_argument('text', nargs='?', help='Message text (optional)')
     chat_parser.add_argument('--page', help='Page number for pagination')
     
-    # Send command
-    send_parser = subparsers.add_parser('send', help='Send a file to a user')
-    send_parser.add_argument('username', help='Username to send the file to')
-    send_parser.add_argument('file', help='Path to the file to send')
-    
     # Chat list command
     chat_list_parser = subparsers.add_parser('chat_list', help='List all your chats')
     
+    # Simpler alias for chat_list
+    list_parser = subparsers.add_parser('list', help='List all your chats (alias for chat_list)')
+    
     # Block command
     block_parser = subparsers.add_parser('block', help='Block a user')
-    block_parser.add_argument('username', help='Username to block')
+    block_parser.add_argument('username', nargs='?', help='Username to block')
     
     # Unblock command
     unblock_parser = subparsers.add_parser('unblock', help='Unblock a user')
-    unblock_parser.add_argument('username', help='Username to unblock')
+    unblock_parser.add_argument('username', nargs='?', help='Username to unblock')
     
-    # Blocked command
+    # Blocked list command
     blocked_parser = subparsers.add_parser('blocked', help='List all blocked users')
     
     # Send file command
     send_file_parser = subparsers.add_parser('send_file', help='Send a file to a user')
     send_file_parser.add_argument('username', help='Username to send file to')
-    send_file_parser.add_argument('file_path', help='Path to the file to send')
+    send_file_parser.add_argument('file_path', help='Path to file')
+    
+    # Simpler alias for send_file
+    send_parser = subparsers.add_parser('send', help='Send a file to a user (alias for send_file)')
+    send_parser.add_argument('username', help='Username to send file to')
+    send_parser.add_argument('file_path', help='Path to file')
     
     # Status command
     status_parser = subparsers.add_parser('status', help='Show your current status')
@@ -1685,42 +1738,62 @@ def main():
     # Delete account command
     delete_account_parser = subparsers.add_parser('delete_account', help='Delete your account')
     
+    # Simpler alias for delete_account
+    delete_parser = subparsers.add_parser('delete', help='Delete your account (alias for delete_account)')
+    
     # Help command
     help_parser = subparsers.add_parser('help', help='Show help information')
     
-    args = parser.parse_args()
-    
-    if args.command == 'signup':
-        handle_signup(args)
-    elif args.command == 'login':
-        handle_login(args)
-    elif args.command == 'logout':
-        handle_logout(args)
-    elif args.command == 'message' or args.command == 'chat':
-        handle_message(args)
-    elif args.command == 'chat_list':
-        handle_chat_list(args)
-    elif args.command == 'block':
-        handle_block(args)
-    elif args.command == 'unblock':
-        handle_unblock(args)
-    elif args.command == 'blocked':
-        handle_blocked(args)
-    elif args.command == 'send_file':
-        handle_send_file(args)
-    elif args.command == 'status':
-        handle_status(args)
-    elif args.command == 'update':
-        handle_update(args)
-    elif args.command == 'uninstall':
-        handle_uninstall(args)
-    elif args.command == 'delete_account':
-        handle_delete_account(args)
-    elif args.command == 'help' or not args.command:
-        show_help()
-    else:
-        console.print(f"[bold red]Unknown command: {args.command}[/bold red]")
-        show_help()
+    try:
+        # Parse the arguments
+        args = parser.parse_args()
+        
+        # Handle the commands
+        if args.command == 'signup':
+            handle_signup(args)
+        elif args.command == 'login':
+            handle_login(args)
+        elif args.command == 'logout':
+            handle_logout(args)
+        elif args.command == 'message' or args.command == 'chat':
+            handle_message(args)
+        elif args.command == 'chat_list' or args.command == 'list':
+            handle_chat_list(args)
+        elif args.command == 'block':
+            handle_block(args)
+        elif args.command == 'unblock':
+            handle_unblock(args)
+        elif args.command == 'blocked':
+            handle_list_blocked(args)
+        elif args.command == 'send_file' or args.command == 'send':
+            handle_send_file(args)
+        elif args.command == 'status':
+            handle_status(args)
+        elif args.command == 'update':
+            handle_update(args)
+        elif args.command == 'uninstall':
+            handle_uninstall(args)
+        elif args.command == 'delete_account' or args.command == 'delete':
+            handle_delete_account(args)
+        elif args.command == 'help' or not args.command:
+            show_help()
+        else:
+            show_invalid_command()
+    except SystemExit:
+        # This catches the case when argparse exits due to --help
+        pass
+    except Exception as e:
+        console.print(Panel(f"[bold red]An error occurred:[/bold red] {str(e)}", title="Error", border_style="red"))
+
+def show_invalid_command():
+    """Show a nice error message for invalid commands"""
+    clear_terminal()
+    console.print(Panel(
+        "[bold red]Invalid command[/bold red]\n\n"
+        "Run [bold cyan]terminalchat help[/bold cyan] or [bold cyan]tc help[/bold cyan] to see available commands.",
+        title="Error",
+        border_style="red"
+    ))
 
 # Create a symbolic link for 'tc' command
 def create_tc_symlink():

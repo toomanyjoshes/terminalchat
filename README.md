@@ -50,7 +50,9 @@ terminalchat login username
 ### List all your chats
 
 ```bash
-terminalchat chat_list
+terminalchat list
+# or
+tc list
 ```
 
 ### Send a message to someone
@@ -78,42 +80,56 @@ terminalchat chat username "Your message here"
 
 ```bash
 terminalchat block username
+# or
+tc block username
 ```
 
 ### Unblock a user
 
 ```bash
 terminalchat unblock username
+# or
+tc unblock username
 ```
 
 ### List blocked users
 
 ```bash
 terminalchat blocked
+# or
+tc blocked
 ```
 
 ### Send a file to someone
 
 ```bash
-terminalchat send_file username /path/to/file
+terminalchat send username /path/to/file
+# or
+tc send username /path/to/file
 ```
 
 ### See your current status
 
 ```bash
 terminalchat status
+# or
+tc status
 ```
 
 ### Logout
 
 ```bash
 terminalchat logout
+# or
+tc logout
 ```
 
 ### Delete your account
 
 ```bash
-terminalchat delete_account
+terminalchat delete
+# or
+tc delete
 ```
 
 ### Get help
