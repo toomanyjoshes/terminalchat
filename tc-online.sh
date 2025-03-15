@@ -28,13 +28,18 @@ echo -e "\033[1;32mConnecting to: $RENDER_URL\033[0m"
 # Find the Python script
 if [ -f "terminalchat.py" ]; then
   SCRIPT_PATH="terminalchat.py"
-elif [ -f "$HOME/.terminalchat/app/terminalchat.py" ]; then
-  SCRIPT_PATH="$HOME/.terminalchat/app/terminalchat.py"
-elif [ -f "/opt/terminalchat/app/terminalchat.py" ]; then
-  SCRIPT_PATH="/opt/terminalchat/app/terminalchat.py"
 else
-  echo "Error: Could not find terminalchat.py"
-  exit 1
+  # Download the script if it doesn't exist
+  if [ ! -d "$HOME/.terminalchat" ]; then
+    echo "First-time setup: Downloading TerminalChat..."
+    mkdir -p "$HOME/.terminalchat/app"
+    curl -s -L https://raw.githubusercontent.com/toomanyjoshes/terminalchat/main/terminalchat.py -o "$HOME/.terminalchat/app/terminalchat.py"
+    curl -s -L https://raw.githubusercontent.com/toomanyjoshes/terminalchat/main/requirements.txt -o "$HOME/.terminalchat/app/requirements.txt"
+    echo "Installing dependencies..."
+    pip3 install -r "$HOME/.terminalchat/app/requirements.txt" &>/dev/null
+  fi
+  
+  SCRIPT_PATH="$HOME/.terminalchat/app/terminalchat.py"
 fi
 
 # Run TerminalChat with the server URL

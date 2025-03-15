@@ -14,59 +14,43 @@ A super simple chat application that runs entirely in your terminal. Message any
 ## Quick Install
 
 ```bash
-sudo curl -s https://raw.githubusercontent.com/toomanyjoshes/terminalchat/main/tc | bash
+curl -s https://raw.githubusercontent.com/toomanyjoshes/terminalchat/main/tc-online.sh > tc-online.sh && chmod +x tc-online.sh && ./tc-online.sh login
 ```
 
-This command will download and install TerminalChat on your system, allowing you to use it from anywhere with the simple `tc` command.
-
-## Installation
-
-### Using pip (recommended)
-
-```bash
-pip install git+https://github.com/your-username/terminalchat.git
-```
-
-### From source
-
-```bash
-git clone https://github.com/your-username/terminalchat.git
-cd terminalchat
-pip install -e .
-```
+This command will download the TerminalChat online script and run it immediately. No root privileges required!
 
 ## Usage
 
-After installation, you can use the `tc` command from anywhere in your terminal:
+After installation, you can use the `tc-online.sh` command from anywhere in your terminal:
 
 ### Create an account
 
 ```bash
-tc signup
+./tc-online.sh signup
 # or
-tc signup username
+./tc-online.sh signup username
 ```
 
 ### Login to your account
 
 ```bash
-tc login
+./tc-online.sh login
 # or
-tc login username
+./tc-online.sh login username
 ```
 
 ### List all your chats
 
 ```bash
-tc list
+./tc-online.sh list
 ```
 
 ### Send a message to someone
 
 ```bash
-tc message username
+./tc-online.sh message username
 # or using the alias
-tc chat username
+./tc-online.sh chat username
 ```
 
 When in a chat, you can:
@@ -77,57 +61,57 @@ When in a chat, you can:
 ### Send a message directly from the command line
 
 ```bash
-tc message username "Your message here"
+./tc-online.sh message username "Your message here"
 # or using the alias
-tc chat username "Your message here"
+./tc-online.sh chat username "Your message here"
 ```
 
 ### Block a user
 
 ```bash
-tc block username
+./tc-online.sh block username
 ```
 
 ### Unblock a user
 
 ```bash
-tc unblock username
+./tc-online.sh unblock username
 ```
 
 ### List blocked users
 
 ```bash
-tc blocked
+./tc-online.sh blocked
 ```
 
 ### Send a file to someone
 
 ```bash
-tc send username /path/to/file
+./tc-online.sh send username /path/to/file
 ```
 
 ### See your current status
 
 ```bash
-tc status
+./tc-online.sh status
 ```
 
 ### Logout
 
 ```bash
-tc logout
+./tc-online.sh logout
 ```
 
 ### Delete your account
 
 ```bash
-tc delete
+./tc-online.sh delete
 ```
 
 ### Get help
 
 ```bash
-tc help
+./tc-online.sh help
 ```
 
 ## About
@@ -161,7 +145,7 @@ If you've deployed your own server, you can connect to it by setting the environ
 
 ```bash
 export TERMINALCHAT_SERVER_URL="https://your-server-url.com"
-tc login
+./tc-online.sh login
 ```
 
 ## License
