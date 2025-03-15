@@ -118,6 +118,9 @@ def server_request(endpoint, method="GET", data=None, files=None, token=None, pr
     
     if token:
         headers["Authorization"] = f"Bearer {token}"
+        # Debug token issues
+        if endpoint.startswith("messages/") or endpoint.startswith("user/"):
+            console.print(f"[dim]Using token: {token[:10]}...[/dim]")
     
     try:
         if method == "GET":
@@ -822,13 +825,18 @@ def handle_login(args):
     # Log in the user
     result = server_request("login", method="POST", data={"username": username, "password": password})
     
-    if result and result.get('success'):
+    if result and result.get('success') and result.get('token'):
         # Save the token
         config = get_config()
         config['logged_in'] = True
         config['username'] = username
         config['token'] = result.get('token')
         save_config(config)
+        
+        # Verify token was saved
+        saved_token = get_server_token()
+        if saved_token != result.get('token'):
+            console.print("[bold yellow]Warning: Token may not have been saved correctly[/bold yellow]")
         
         clear_terminal()
         console.print(f"[bold green]Logged in as {username}![/bold green]")
@@ -1572,8 +1580,12 @@ def user_exists(username):
         token = get_server_token()
         if token:
             result = server_request(f"user/{username}", token=token)
-            if result and result.get('exists'):
+            if isinstance(result, dict) and result.get('exists') is True:
                 return True
+            # If we got a response but the user doesn't exist, return False immediately
+            # This prevents falling back to local check which might return True incorrectly
+            if isinstance(result, dict) and 'exists' in result:
+                return result.get('exists')
     
     # Fallback to local if server fails or not using server
     users_file = os.path.join(DATA_DIR, 'users.json')
