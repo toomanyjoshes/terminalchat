@@ -21,6 +21,12 @@ echo -e "\033[1;32mConnecting to: $RENDER_URL\033[0m"
 APP_DIR="$HOME/.terminalchat/app"
 mkdir -p "$APP_DIR"
 
+# Check if pip3 is installed
+if ! command -v pip3 &> /dev/null; then
+    echo "pip3 not found, installing using system Python..."
+    python3 -m ensurepip --default-pip
+fi
+
 # Always download the latest version of terminalchat.py
 echo "Downloading TerminalChat..."
 curl -s -o "$APP_DIR/terminalchat.py" "https://raw.githubusercontent.com/toomanyjoshes/terminalchat/main/terminalchat.py"
@@ -34,9 +40,15 @@ fi
 # Download requirements.txt
 curl -s -o "$APP_DIR/requirements.txt" "https://raw.githubusercontent.com/toomanyjoshes/terminalchat/main/requirements.txt"
 
-# Install dependencies
+# Install dependencies using system Python if needed
+PYTHON_CMD="python3"
+if ! command -v pip3 &> /dev/null; then
+    echo "Using system Python without pip3"
+    PYTHON_CMD="python3 -m pip"
+fi
+
 echo "Installing dependencies..."
-pip3 install -q -r "$APP_DIR/requirements.txt" || {
+$PYTHON_CMD install -q -r "$APP_DIR/requirements.txt" || {
     echo "Warning: Failed to install dependencies. Continuing anyway..."
 }
 
