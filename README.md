@@ -14,10 +14,10 @@ A super simple chat application that runs entirely in your terminal. Message any
 ## Quick Install
 
 ```bash
-curl -s https://raw.githubusercontent.com/toomanyjoshes/terminalchat/main/install.sh | bash
+sudo curl -s https://raw.githubusercontent.com/toomanyjoshes/terminalchat/main/tc | bash
 ```
 
-This command will download and install TerminalChat on your system, allowing you to use it from anywhere with the `tc` command.
+This command will download and install TerminalChat on your system, allowing you to use it from anywhere with the simple `tc` command.
 
 ## Installation
 
@@ -37,38 +37,36 @@ pip install -e .
 
 ## Usage
 
-After installation, you can use the `terminalchat` command from anywhere in your terminal:
+After installation, you can use the `tc` command from anywhere in your terminal:
 
 ### Create an account
 
 ```bash
-terminalchat signup
+tc signup
 # or
-terminalchat signup username
+tc signup username
 ```
 
 ### Login to your account
 
 ```bash
-terminalchat login
+tc login
 # or
-terminalchat login username
+tc login username
 ```
 
 ### List all your chats
 
 ```bash
-terminalchat list
-# or
 tc list
 ```
 
 ### Send a message to someone
 
 ```bash
-terminalchat message username
+tc message username
 # or using the alias
-terminalchat chat username
+tc chat username
 ```
 
 When in a chat, you can:
@@ -79,76 +77,70 @@ When in a chat, you can:
 ### Send a message directly from the command line
 
 ```bash
-terminalchat message username "Your message here"
+tc message username "Your message here"
 # or using the alias
-terminalchat chat username "Your message here"
+tc chat username "Your message here"
 ```
 
 ### Block a user
 
 ```bash
-terminalchat block username
-# or
 tc block username
 ```
 
 ### Unblock a user
 
 ```bash
-terminalchat unblock username
-# or
 tc unblock username
 ```
 
 ### List blocked users
 
 ```bash
-terminalchat blocked
-# or
 tc blocked
 ```
 
 ### Send a file to someone
 
 ```bash
-terminalchat send username /path/to/file
-# or
 tc send username /path/to/file
 ```
 
 ### See your current status
 
 ```bash
-terminalchat status
-# or
 tc status
 ```
 
 ### Logout
 
 ```bash
-terminalchat logout
-# or
 tc logout
 ```
 
 ### Delete your account
 
 ```bash
-terminalchat delete
-# or
 tc delete
 ```
 
 ### Get help
 
 ```bash
-terminalchat help
+tc help
 ```
+
+## About
+
+TerminalChat is developed by © Shortcut Studios. It's designed to be simple, fast, and secure.
+
+All communication is done through our secure online server at https://terminalchat-server.onrender.com.
 
 ## Deployment
 
-### Deploying to Render
+### Deploying Your Own Server
+
+If you want to deploy your own TerminalChat server:
 
 1. Create a free account on [Render](https://render.com)
 2. Click on "New" and select "Web Service"
@@ -161,65 +153,17 @@ terminalchat help
    - Instance Type: `Free`
 5. Click "Create Web Service"
 
-Render will automatically deploy your application and provide you with a URL like `https://terminalchat-server.onrender.com`.
+Render will automatically deploy your application and provide you with a URL.
 
-### Using the Online Server
+### Using Your Custom Server
 
-Once you have deployed the server to Render, you can use the `tc-online.sh` script to connect to it:
-
-```bash
-# First, update the RENDER_URL in the script with your actual Render URL
-nano tc-online.sh
-
-# Then run the script
-./tc-online.sh login
-```
-
-Alternatively, you can set the environment variable directly:
+If you've deployed your own server, you can connect to it by setting the environment variable:
 
 ```bash
-export TERMINALCHAT_SERVER_URL="https://terminalchat-server.onrender.com"
-python terminalchat.py login
+export TERMINALCHAT_SERVER_URL="https://your-server-url.com"
+tc login
 ```
-
-Or run the client with the server URL in a single command:
-
-```bash
-TERMINALCHAT_SERVER_URL="https://terminalchat-server.onrender.com" python terminalchat.py login
-```
-
-### Deploy the server
-
-The TerminalChat server can be deployed to various cloud platforms:
-
-#### Heroku
-
-1. Sign up for a Heroku account
-2. Install the Heroku CLI
-3. Run the following commands:
-   ```bash
-   heroku login
-   heroku create terminalchat-server
-   git push heroku main
-   ```
-
-### Connect the client to your deployed server
-
-To connect your TerminalChat client to your deployed server, set the `SERVER_URL` environment variable:
-
-```bash
-export TERMINALCHAT_SERVER_URL="https://your-deployed-server-url.com"
-```
-
-Or edit the `terminalchat.py` file to update the `SERVER_URL` constant.
-
-## Requirements
-
-- Python 3.6+
-- Rich library (automatically installed)
-- Flask (for server)
-- Requests (for client)
 
 ## License
 
-MIT
+TerminalChat is © Shortcut Studios. All rights reserved.

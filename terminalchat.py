@@ -68,7 +68,7 @@ DOWNLOADS_DIR = os.path.expanduser("~/Downloads")  # Default downloads directory
 DATA_DIR = os.path.join(APP_DIR, "data")
 
 # Server configuration
-SERVER_URL = os.environ.get('TERMINALCHAT_SERVER_URL', 'http://localhost:5001')  # Local server URL for testing
+SERVER_URL = os.environ.get('TERMINALCHAT_SERVER_URL', 'https://terminalchat-server.onrender.com')  # Default to online server
 USE_SERVER = True  # Always use server mode for internet messaging
 
 # Update configuration

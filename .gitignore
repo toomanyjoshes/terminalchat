@@ -26,6 +26,13 @@ ENV/
 
 # Application data
 data/
+server_data/
+*.token
+tokens.json
+users.json
+blocked.json
+messages/
+files/
 
 # IDE files
 .idea/

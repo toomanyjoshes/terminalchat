@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# TerminalChat quick installer script
+# Created by © Shortcut Studios
+
+# Display banner
+echo -e "\033[1;36m"
+echo "╔════════════════════════════════════════╗"
+echo "║       TerminalChat Installer           ║"
+echo "║          © Shortcut Studios            ║"
+echo "╚════════════════════════════════════════╝"
+echo -e "\033[0m"
+
+# Check if running as root
+if [ "$EUID" -ne 0 ]; then
+  echo -e "\033[1;33mPlease run as root (use sudo)\033[0m"
+  echo -e "Example: sudo curl -s https://raw.githubusercontent.com/toomanyjoshes/terminalchat/main/tc | bash"
+  exit 1
+fi
+
+echo "Installing TerminalChat..."
+
+# Create temp directory
+TEMP_DIR=$(mktemp -d)
+cd "$TEMP_DIR"
+
+# Download the installation script
+echo "Downloading TerminalChat..."
+curl -s -L https://raw.githubusercontent.com/toomanyjoshes/terminalchat/main/install.sh -o install.sh
+chmod +x install.sh
+
+# Run the installation script with system-wide flag
+./install.sh system
+
+# Clean up
+rm -rf "$TEMP_DIR"
