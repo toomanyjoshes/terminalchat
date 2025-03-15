@@ -167,6 +167,31 @@ def save_server_token(token):
     config = get_config()
     config["token"] = token
     save_config(config)
+    
+def get_fresh_token():
+    """Get a fresh token by validating the current one and refreshing if needed"""
+    token = get_server_token()
+    if not token:
+        console.print("[bold red]You are not logged in. Please log in first.[/bold red]")
+        return None
+        
+    # Test token validity
+    test_result = server_request("status", token=token)
+    if test_result and not test_result.get('error'):
+        return token
+    
+    # Token is invalid, try to refresh it
+    console.print("[dim]Token expired, attempting to refresh...[/dim]")
+    config = get_config()
+    username = config.get('username')
+    
+    # We need to re-login to get a new token
+    # This would require the password, which we don't store
+    # So we'll just clear the token and ask the user to login again
+    config['token'] = None
+    save_config(config)
+    console.print("[bold yellow]Your session has expired. Please log in again.[/bold yellow]")
+    return None
 
 # User management functions
 def get_users():
@@ -526,15 +551,25 @@ def send_message(recipient, message_text):
     
     # Send the message to the server
     if USE_SERVER:
-        token = get_server_token()
-        if token:
-            result = server_request(f"messages/{recipient}", method="POST", data=message, token=token)
-            if result and result.get('success'):
-                return True
-            else:
-                error = result.get('error', 'Unknown error') if result else 'Could not connect to server'
-                console.print(f"[bold red]Failed to send message: {error}[/bold red]")
-                return False
+        token = get_fresh_token()
+        if not token:
+            return False  # get_fresh_token already displays appropriate messages
+            
+        result = server_request(f"messages/{recipient}", method="POST", data=message, token=token)
+        if result and result.get('success'):
+            return True
+        else:
+            error = result.get('error', 'Unknown error') if result else 'Could not connect to server'
+            console.print(f"[bold red]Failed to send message: {error}[/bold red]")
+            
+            # If token is invalid, prompt to log in again
+            if result and result.get('error') == 'Invalid token':
+                console.print("[bold red]Your session has expired. Please log in again.[/bold red]")
+                # Clear the invalid token
+                config = get_config()
+                config['token'] = None
+                save_config(config)
+            return False
     
     # Fallback to local if server fails or not using server
     messages_dir = os.path.join(MESSAGES_DIR, current_user)
@@ -1021,6 +1056,16 @@ def display_messages(username, messages, page, total_pages):
 # Chat mode
 def chat_mode(username):
     """Enter chat mode with a user"""
+    # Verify user exists before starting chat
+    if not user_exists(username):
+        console.print(f"[bold red]User {username} does not exist.[/bold red]")
+        return
+    
+    # Verify token is valid before starting chat
+    token = get_fresh_token()
+    if not token:
+        return  # get_fresh_token already displays appropriate messages
+    
     while True:
         # Get the message
         message = input("> ")
@@ -1042,23 +1087,48 @@ def chat_mode(username):
         
         # Send the message
         if message:
-            token = get_server_token()
-            result = server_request(f"messages/{username}", method="POST", token=token, data={"content": message})
+            # Get a fresh token for each message
+            token = get_fresh_token()
+            if not token:
+                break  # get_fresh_token already displays appropriate messages
+                
+            # Format the message data properly
+            message_data = {
+                "sender": get_current_user(),
+                "recipient": username,
+                "content": message,
+                "timestamp": datetime.now().isoformat(),
+                "read": False,
+                "is_file": False
+            }
+            
+            result = server_request(f"messages/{username}", method="POST", token=token, data=message_data)
             
             if result and result.get('success'):
                 # Refresh the messages
                 messages = server_request(f"messages/{username}", token=token)
                 
-                if messages:
+                if messages and isinstance(messages, list):
                     # Display the last page of messages
                     total_pages = (len(messages) + MESSAGES_PER_PAGE - 1) // MESSAGES_PER_PAGE
                     if total_pages == 0:
                         total_pages = 1
                     
                     display_messages(username, messages, total_pages, total_pages)
+                else:
+                    console.print("[bold yellow]No messages to display.[/bold yellow]")
             else:
                 error_message = result.get('error', 'Unknown error') if result else 'Could not connect to server'
                 console.print(f"[bold red]Failed to send message: {error_message}[/bold red]")
+                
+                # If token is invalid, prompt to log in again
+                if result and result.get('error') == 'Invalid token':
+                    console.print("[bold red]Your session has expired. Please log in again.[/bold red]")
+                    # Clear the invalid token
+                    config = get_config()
+                    config['token'] = None
+                    save_config(config)
+                    break
 
 # Format file size
 def format_file_size(size_bytes):
