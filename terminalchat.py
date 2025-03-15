@@ -139,7 +139,11 @@ def server_request(endpoint, method="GET", data=None, files=None, token=None, pr
         try:
             return response.json()
         except:
-            return response.content
+            # Try to decode the content to a string instead of returning raw bytes
+            try:
+                return {"error": response.content.decode('utf-8')}
+            except:
+                return {"error": "Could not parse server response"}
     except requests.exceptions.ConnectionError:
         console.print("[bold red]Could not connect to the server. Please check your internet connection.[/bold red]")
         return None
