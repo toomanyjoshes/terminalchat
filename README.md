@@ -11,6 +11,14 @@ A super simple chat application that runs entirely in your terminal. Message any
 - Clean ASCII interface using Rich for beautiful terminal UI
 - Works on macOS and Linux
 
+## Quick Install
+
+```bash
+curl -s https://raw.githubusercontent.com/toomanyjoshes/terminalchat/main/install.sh | bash
+```
+
+This command will download and install TerminalChat on your system, allowing you to use it from anywhere with the `tc` command.
+
 ## Installation
 
 ### Using pip (recommended)
